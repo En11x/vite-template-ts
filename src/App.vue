@@ -1,3 +1,5 @@
 <template>
-  <HelloWorld msg="Vite + Vue" />
+  <router-view v-slot="{ Component }">
+    <component :is="Component" />
+  </router-view>
 </template>
