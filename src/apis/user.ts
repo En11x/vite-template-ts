@@ -1,5 +1,23 @@
-import http from '../utils/axios';
+import useRequest from '@/hooks/useRequest';
+import request from '@/service';
 
-export const getUsers = () => {
-  return http.get('', {});
+interface IGetUserParmas {
+  id?: string;
+}
+
+interface IGetUserRes {
+  id?: string;
+  name: string;
+}
+
+export const getUsers = (data: IGetUserParmas) => {
+  return request<IGetUserParmas, IGetUserRes>({
+    url: '/api/users',
+    method: 'GET',
+    data,
+  });
+};
+
+export const useGetUsers = (params: IGetUserParmas) => {
+  return useRequest<IGetUserParmas, IGetUserRes>(getUsers, params);
 };

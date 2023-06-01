@@ -1,101 +1,98 @@
-import { Response } from '@/service';
-import { Ref, computed, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { delay, debounce, throttle } from 'lodash';
 
-interface IUseRequestOptions<T = any> {
-  debounce?: boolean;
+type Service<TData, TParams extends any[]> = (
+  ...args: TParams
+) => Promise<TData>;
+
+interface Options<TData, TParams extends any[]> {
+  manual?: boolean;
+
+  defaultParams?: TParams;
+
   debounceInterval?: number;
-  throttle?: boolean;
   throttleInterval?: number;
   polling?: boolean;
   pollingInterval?: number;
-  autoRun?: boolean;
-  onFinish?: (data: T) => void;
+
+  onSuccess?: (data: TData, params: TParams) => void;
+  onError?: (e: Error, params: TParams) => void;
+  onFinally?: (params: TParams, data?: TData, e?: Error) => void;
 }
 
-interface IUserRequestReturnType<D, T> {
-  loading: Ref<boolean>;
-  data: Ref<T | undefined>;
-  error: any;
-  refetch: (...args: any[]) => Promise<void>;
-  refetchParams: (params: D) => Promise<void>;
+interface Result<TData, TParams extends any[]> {
+  loading: boolean;
+  data?: TData;
+  error?: Error;
+  refresh: Service<TData, TParams>;
 }
 
-const defaultOption: IUseRequestOptions = {
-  debounce: false,
-  debounceInterval: 1000,
-  throttle: false,
-  throttleInterval: 1000,
-  polling: false,
-  pollingInterval: 5000,
-  autoRun: true,
-  onFinish: undefined,
-};
-
-const useRequest = <ParamType = any, DataType = Response<any>>(
-  request: (p: ParamType) => Promise<DataType>,
-  params: ParamType,
-  opt?: IUseRequestOptions<DataType>,
-): IUserRequestReturnType<ParamType, DataType> => {
-  const option = Object.assign({}, defaultOption, opt);
+const useRequest = <TData, TParams extends any[]>(
+  service: Service<TData, TParams>,
+  options?: Options<TData, TParams>,
+): Result<TData, TParams> => {
+  const {
+    manual = false,
+    defaultParams,
+    debounceInterval,
+    throttleInterval,
+    polling,
+    pollingInterval,
+    onSuccess,
+    onError,
+    onFinally,
+  } = options!;
   const loading = ref(false);
-  const data = ref<DataType>();
+  const data = ref<TData>();
+  const error = ref<Error>();
 
-  if (option.debounce && option.throttle) {
+  if (debounceInterval && throttleInterval) {
     console.warn('only one');
   }
 
-  const run = async (): Promise<void> => {
+  const run = async (...params: TParams) => {
     loading.value = true;
-    data.value = await request(params);
-    loading.value = true;
-    option.onFinish && option.onFinish(data.value);
+    service(...params)
+      .then((res) => {
+        data.value = res;
+        onSuccess && onSuccess(res, params);
+      })
+      .catch((e) => {
+        error.value = e;
+        onError && onError(e, params);
+      })
+      .finally(() => {
+        loading.value = false;
+        onFinally && onFinally(params, data.value);
+      });
   };
 
-  const runParams = async (_params: ParamType): Promise<void> => {
-    loading.value = true;
-    data.value = await request(_params);
-    loading.value = false;
-    option.onFinish && option.onFinish(data.value);
+  const poll = async () => {
+    run(...(defaultParams as TParams));
+    delay(poll, pollingInterval as number);
   };
 
-  const polling = async () => {
-    loading.value = true;
-    data.value = await request(params);
-    loading.value = false;
-    option.onFinish && option.onFinish(data.value);
-    delay(polling, option.pollingInterval as number);
-  };
+  !manual && run(...(defaultParams as TParams));
 
-  option.autoRun && run();
-
-  option.polling && polling();
+  polling && poll();
 
   const runComputed = computed(() => {
-    if (option.debounce) {
-      return {
-        run: debounce(run, option.debounceInterval),
-        runParams: debounce(runParams, option.debounceInterval),
-      };
-    }
-    if (option.throttle) {
-      return {
-        run: throttle(run, option.throttleInterval),
-        runParams: throttle(runParams, option.throttleInterval),
-      };
+    if (debounceInterval) {
+      return debounce(run, debounceInterval);
     }
 
-    return { run, runParams };
+    if (throttleInterval) {
+      return throttle(run, throttleInterval);
+    }
+
+    return run;
   });
 
   return {
-    loading,
-    data,
-    refetch: runComputed.value.run as () => Promise<void>,
-    refetchParams: runComputed.value.runParams as (
-      p: ParamType,
-    ) => Promise<void>,
-    error: '',
+    loading: loading.value,
+    data: data.value,
+    error: error.value,
+    refresh: runComputed.value as Service<TData, TParams>,
   };
 };
 
