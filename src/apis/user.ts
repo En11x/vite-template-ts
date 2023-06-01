@@ -18,6 +18,6 @@ export const getUsers = (data: IGetUserParmas) => {
   });
 };
 
-export const useGetUsers = (params: IGetUserParmas) => {
-  return useRequest<IGetUserParmas, IGetUserRes>(getUsers, params);
+export const useGetUsers = () => {
+  return useRequest<IGetUserParmas, IGetUserRes>(getUsers, { manual: true });
 };

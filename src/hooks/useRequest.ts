@@ -1,11 +1,9 @@
 import { computed, ref } from 'vue';
 import { delay, debounce, throttle } from 'lodash';
 
-type Service<TData, TParams extends any[]> = (
-  ...args: TParams
-) => Promise<TData>;
+type Service<TData, TParams> = (...args: TParams[]) => Promise<TData>;
 
-interface Options<TData, TParams extends any[]> {
+interface Options<TData, TParams> {
   manual?: boolean;
 
   defaultParams?: TParams;
@@ -20,14 +18,14 @@ interface Options<TData, TParams extends any[]> {
   onFinally?: (params: TParams, data?: TData, e?: Error) => void;
 }
 
-interface Result<TData, TParams extends any[]> {
+interface Result<TData, TParams> {
   loading: boolean;
   data?: TData;
   error?: Error;
   refresh: Service<TData, TParams>;
 }
 
-const useRequest = <TData, TParams extends any[]>(
+const useRequest = <TData, TParams = any>(
   service: Service<TData, TParams>,
   options?: Options<TData, TParams>,
 ): Result<TData, TParams> => {
@@ -50,9 +48,9 @@ const useRequest = <TData, TParams extends any[]>(
     console.warn('only one');
   }
 
-  const run = async (...params: TParams) => {
+  const run = async (params: TParams) => {
     loading.value = true;
-    service(...params)
+    service(params)
       .then((res) => {
         data.value = res;
         onSuccess && onSuccess(res, params);
@@ -68,11 +66,11 @@ const useRequest = <TData, TParams extends any[]>(
   };
 
   const poll = async () => {
-    run(...(defaultParams as TParams));
+    run(defaultParams as TParams);
     delay(poll, pollingInterval as number);
   };
 
-  !manual && run(...(defaultParams as TParams));
+  !manual && run(defaultParams as TParams);
 
   polling && poll();
 
