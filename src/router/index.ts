@@ -6,15 +6,26 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
-  if (to.meta.auth) {
-    //登录页
+const WHITE_LIST = ['/login'];
 
-    return {
-      path: '/login',
-      //保存现在位置
-      query: { redirect: to.fullPath },
-    };
+router.beforeEach((to, _, next) => {
+  const hasToken = localStorage.getItem('accessToken');
+  if (hasToken) {
+    if (to.path === '/login') {
+      next({ path: '/' });
+    } else {
+      if (to.meta.auth) {
+        //auth permission
+      } else {
+        next();
+      }
+    }
+  } else {
+    if (WHITE_LIST.includes(to.path)) {
+      next();
+    } else {
+      next(`/login?redirect=${to.path}`);
+    }
   }
 });
 
