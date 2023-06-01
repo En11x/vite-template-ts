@@ -44,7 +44,7 @@ export default ({ mode }) => {
         output: {
           // ()=>import()形式加载的组件会自动分包，第三方插件需要手动分包
           manualChunks: {
-            vue: ['vue', 'pinia', 'vue-router'],
+            vue: ['vue', 'vue-router'],
             //第三方组件库
           },
           //js css文件分离
