@@ -1,11 +1,11 @@
-import { createApp } from 'vue';
-import './style.css';
-import App from './App.vue';
-import router from './router';
-import { setupDirective } from './directive';
+import { createApp } from 'vue'
+import './style.css'
+import App from './App.vue'
+import router from './router'
+import { setupDirective } from './directive'
 
-const app = createApp(App);
+const app = createApp(App)
 
-setupDirective(app);
+setupDirective(app)
 
-app.use(router).mount('#app');
+app.use(router).mount('#app')

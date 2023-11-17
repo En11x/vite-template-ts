@@ -1,22 +1,19 @@
-import { Directive, DirectiveBinding } from 'vue';
+import type { Directive, DirectiveBinding } from 'vue'
 
 export const hasPermission: Directive = {
   mounted(el: HTMLElement, binding: DirectiveBinding) {
-    const roles = 'admin';
-    const permissions = ['user:add'];
-    if (roles.includes('superadmin')) {
-      return true;
-    }
+    const roles = 'admin'
+    const permissions = ['user:add']
+    if (roles.includes('superadmin'))
+      return true
 
-    const { value } = binding;
-    if (!value) {
-      throw new Error('no permission code');
-    }
+    const { value } = binding
+    if (!value)
+      throw new Error('no permission code')
 
-    const hasPermission = permissions.some((perm) => value.includes(perm));
+    const hasPermission = permissions.some(perm => value.includes(perm))
 
-    if (!hasPermission) {
-      el.parentNode && el.parentNode.removeChild(el);
-    }
+    if (!hasPermission)
+      el.parentNode && el.parentNode.removeChild(el)
   },
-};
+}

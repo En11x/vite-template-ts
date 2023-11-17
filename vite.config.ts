@@ -1,10 +1,10 @@
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import AutoImport from 'unplugin-auto-import/vite';
-import path from 'path';
+import { defineConfig, loadEnv } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import path from 'path'
 
 export default ({ mode }) => {
-  console.log('mode', loadEnv(mode, process.cwd()).VITE_BASE_URL);
+  console.log('mode', loadEnv(mode, process.cwd()).VITE_BASE_URL)
 
   return defineConfig({
     plugins: [
@@ -38,21 +38,21 @@ export default ({ mode }) => {
         },
       },
     },
-    //打包配置
+    // 打包配置
     build: {
       rollupOptions: {
         output: {
           // ()=>import()形式加载的组件会自动分包，第三方插件需要手动分包
           manualChunks: {
             vue: ['vue', 'vue-router'],
-            //第三方组件库
+            // 第三方组件库
           },
-          //js css文件分离
+          // js css文件分离
           chunkFileNames: 'static/js/[name]-[hash].js',
           entryFileNames: 'static/js/[name]-[hash].js',
           assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
         },
       },
     },
-  });
-};
+  })
+}

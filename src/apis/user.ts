@@ -1,13 +1,13 @@
-import useRequest from '@/hooks/useRequest';
-import request from '@/service';
+import useRequest from '@/hooks/useRequest'
+import request from '@/service'
 
 interface IGetUserParmas {
-  id?: string;
+  id?: string
 }
 
 interface IGetUserRes {
-  id?: string;
-  name: string;
+  id?: string
+  name: string
 }
 
 export const getUsers = (data: IGetUserParmas) => {
@@ -15,9 +15,9 @@ export const getUsers = (data: IGetUserParmas) => {
     url: '/api/users',
     method: 'GET',
     data,
-  });
-};
+  })
+}
 
 export const useGetUsers = () => {
-  return useRequest<IGetUserParmas, IGetUserRes>(getUsers, { manual: true });
-};
+  return useRequest<IGetUserParmas, IGetUserRes>(getUsers, { manual: true })
+}

@@ -1,4 +1,4 @@
-const Layout = () => import('@/layout/index.vue');
+const Layout = () => import('@/layout/index.vue')
 
 const routes = [
   {
@@ -26,6 +26,6 @@ const routes = [
       },
     ],
   },
-];
+]
 
-export default routes;
+export default routes

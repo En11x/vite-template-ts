@@ -1,28 +1,28 @@
-import { computed, ref } from 'vue';
-import { delay, debounce, throttle } from 'lodash';
+import { computed, ref } from 'vue'
+import { delay, debounce, throttle } from 'lodash'
 
-type Service<TData, TParams> = (...args: TParams[]) => Promise<TData>;
+type Service<TData, TParams> = (...args: TParams[]) => Promise<TData>
 
 interface Options<TData, TParams> {
-  manual?: boolean;
+  manual?: boolean
 
-  defaultParams?: TParams;
+  defaultParams?: TParams
 
-  debounceInterval?: number;
-  throttleInterval?: number;
-  polling?: boolean;
-  pollingInterval?: number;
+  debounceInterval?: number
+  throttleInterval?: number
+  polling?: boolean
+  pollingInterval?: number
 
-  onSuccess?: (data: TData, params: TParams) => void;
-  onError?: (e: Error, params: TParams) => void;
-  onFinally?: (params: TParams, data?: TData, e?: Error) => void;
+  onSuccess?: (data: TData, params: TParams) => void
+  onError?: (e: Error, params: TParams) => void
+  onFinally?: (params: TParams, data?: TData, e?: Error) => void
 }
 
 interface Result<TData, TParams> {
-  loading: boolean;
-  data?: TData;
-  error?: Error;
-  refresh: Service<TData, TParams>;
+  loading: boolean
+  data?: TData
+  error?: Error
+  refresh: Service<TData, TParams>
 }
 
 const useRequest = <TData, TParams = any>(
@@ -39,59 +39,56 @@ const useRequest = <TData, TParams = any>(
     onSuccess,
     onError,
     onFinally,
-  } = options!;
-  const loading = ref(false);
-  const data = ref<TData>();
-  const error = ref<Error>();
+  } = options!
+  const loading = ref(false)
+  const data = ref<TData>()
+  const error = ref<Error>()
 
-  if (debounceInterval && throttleInterval) {
-    console.warn('only one');
-  }
+  if (debounceInterval && throttleInterval)
+    console.warn('only one')
 
   const run = async (params: TParams) => {
-    loading.value = true;
+    loading.value = true
     service(params)
       .then((res) => {
-        data.value = res;
-        onSuccess && onSuccess(res, params);
+        data.value = res
+        onSuccess && onSuccess(res, params)
       })
       .catch((e) => {
-        error.value = e;
-        onError && onError(e, params);
+        error.value = e
+        onError && onError(e, params)
       })
       .finally(() => {
-        loading.value = false;
-        onFinally && onFinally(params, data.value);
-      });
-  };
+        loading.value = false
+        onFinally && onFinally(params, data.value)
+      })
+  }
 
   const poll = async () => {
-    run(defaultParams as TParams);
-    delay(poll, pollingInterval as number);
-  };
+    run(defaultParams as TParams)
+    delay(poll, pollingInterval as number)
+  }
 
-  !manual && run(defaultParams as TParams);
+  !manual && run(defaultParams as TParams)
 
-  polling && poll();
+  polling && poll()
 
   const runComputed = computed(() => {
-    if (debounceInterval) {
-      return debounce(run, debounceInterval);
-    }
+    if (debounceInterval)
+      return debounce(run, debounceInterval)
 
-    if (throttleInterval) {
-      return throttle(run, throttleInterval);
-    }
+    if (throttleInterval)
+      return throttle(run, throttleInterval)
 
-    return run;
-  });
+    return run
+  })
 
   return {
     loading: loading.value,
     data: data.value,
     error: error.value,
     refresh: runComputed.value as Service<TData, TParams>,
-  };
-};
+  }
+}
 
-export default useRequest;
+export default useRequest
